@@ -1090,6 +1090,20 @@ pub(crate) mod tests {
 
             // create a chain with a descriptor pointing to an indirect table
             let desc = vq.dtable(0);
+            desc.set(0x1001, 0x1000, VIRTQ_DESC_F_INDIRECT, 0);
+
+            let mut c: DescriptorChain<&GuestMemoryMmap> =
+                DescriptorChain::new(m, vq.start(), 16, 0);
+            c.is_indirect = true;
+            assert!(c.process_indirect_descriptor(Descriptor::new(0x1, 0x1000, VIRTQ_DESC_F_INDIRECT, 0)).is_err());
+        }
+
+        {
+            let m = &GuestMemoryMmap::from_ranges(&[(GuestAddress(0), 0x10000)]).unwrap();
+            let vq = VirtQueue::new(GuestAddress(0), m, 16);
+
+            // create a chain with a descriptor pointing to an indirect table
+            let desc = vq.dtable(0);
             desc.set(0x1000, 0x1001, VIRTQ_DESC_F_INDIRECT, 0);
 
             let mut c: DescriptorChain<&GuestMemoryMmap> =
